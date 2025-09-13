@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Геолокация</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+            display: none;
+        }
+        #coordinates {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Запрос геолокации</h1>
+    <p>Нажмите кнопку ниже, чтобы запросить разрешение на доступ к вашей геолокации.</p>
+    <button onclick="getLocation()">Запросить геолокацию</button>
+    <div id="coordinates"></div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                document.getElementById("coordinates").innerHTML = "Геолокация не поддерживается вашим браузером.";
+            }
+        }
+
+        function showPosition(position) {
+            var lat = position.coords.latitude;
+            var lon = position.coords.longitude;
+            document.getElementById("coordinates").innerHTML = "Широта: " + lat + "<br>Долгота: " + lon;
+
+            // Показываем карту
+            var mapDiv = document.getElementById("map");
+            mapDiv.style.display = "block";
+
+            var map = L.map('map').setView([lat, lon], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            L.marker([lat, lon]).addTo(map)
+                .bindPopup('Ваше местоположение')
+                .openPopup();
+        }
+
+        function showError(error) {
+            var message = "";
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = "Пользователь отклонил запрос на геолокацию.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = "Информация о местоположении недоступна.";
+                    break;
+                case error.TIMEOUT:
+                    message = "Запрос на геолокацию превысил время ожидания.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    message = "Произошла неизвестная ошибка.";
+                    break;
+            }
+            document.getElementById("coordinates").innerHTML = message;
+        }
+    </script>
+</body>
+</html>
